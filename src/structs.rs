@@ -13,3 +13,27 @@ pub struct DiscordUserData {
     pub discriminator: String,
     pub avatar: String,
 }
+
+#[derive(Deserialize, Debug, Serialize)]
+pub struct DiscordGuild {
+    pub id: String,
+    pub name: String,
+    pub icon: String,
+    pub owner: bool,
+}
+
+#[derive(Deserialize, Debug, Serialize)]
+pub struct DiscordGuildsList {
+    pub guilds: Vec<DiscordGuild>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Filter {
+    pub allowed_origin: String,
+    pub guild_ids: Vec<String>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ApplicationData {
+    pub filter: Filter,
+}
