@@ -3,7 +3,7 @@ mod handlers;
 mod structs;
 
 use actix_cors::Cors;
-use actix_web::{http, web, App, HttpServer};
+use actix_web::{http, middleware, web, App, HttpServer};
 use kankyo;
 use std::env;
 use std::fs::File;
@@ -18,8 +18,9 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     // Start http server
-    HttpServer::new( || {
+    HttpServer::new( move || {
         let filter_object = read_filter("filter.json").unwrap();
+        
         let cors = Cors::default() // <- Construct CORS middleware builder
             .allowed_origin(&filter_object.allowed_origin)
             .allowed_methods(vec!["GET"])
@@ -28,11 +29,13 @@ async fn main() -> std::io::Result<()> {
             .max_age(3600);
 
         let data = web::Data::new(Mutex::new(ApplicationData {
-            filter: filter_object
+            filter: filter_object,
+            auth_cache: None
         }));
 
         App::new()
             .wrap(cors)
+            .wrap(middleware::Logger::default())
             .app_data(data.clone())
             .route("/discord/user", web::get().to(handlers::discord_user_data))
             .route("/discord/user/guilds", web::get().to(handlers::discord_user_guilds))
