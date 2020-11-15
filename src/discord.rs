@@ -16,7 +16,6 @@ pub async fn authenticate() -> Result<DiscordAuthentication, reqwest::Error> {
 
     let response = client
         .post("https://discord.com/api/oauth2/token")
-        //.headers(headers)
         .multipart(param)
         .basic_auth(client_id, Some(client_secret))
         .send()
@@ -71,7 +70,7 @@ pub async fn user_guilds(token: String) -> Result<Vec<DiscordGuild>, reqwest::Er
     Ok(content)
 }
 
-pub async fn get_session(auth: &Option<DiscordAuthentication>) -> DiscordAuthentication {
+pub async fn get_session(auth: Option<DiscordAuthentication>) -> DiscordAuthentication {
     let val = match auth {
         Some(value) => {
             let since = value

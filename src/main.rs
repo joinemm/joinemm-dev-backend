@@ -18,19 +18,19 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     // Start http server
-    HttpServer::new( move || {
+    HttpServer::new(move || {
         let filter_object = read_filter("filter.json").unwrap();
-        
+
         let cors = Cors::default() // <- Construct CORS middleware builder
             .allowed_origin(&filter_object.allowed_origin)
-            .allowed_methods(vec!["GET"])
+            .allowed_methods(vec!["GET", "POST"])
             .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
             .allowed_header(http::header::CONTENT_TYPE)
             .max_age(3600);
 
         let data = web::Data::new(Mutex::new(ApplicationData {
             filter: filter_object,
-            auth_cache: None
+            auth_cache: None,
         }));
 
         App::new()
@@ -38,10 +38,9 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .app_data(data.clone())
             .route("/discord/user", web::get().to(handlers::discord_user_data))
-            .route("/discord/user/guilds", web::get().to(handlers::discord_user_guilds))
-            .external_resource(
-                "discord_auth", 
-                "https://discord.com/api/oauth2/authorize?response_type=code&scope=identify&prompt=consent&redirect_uri={redirect}&client_id={client_id}&state={state}"
+            .route(
+                "/discord/user/guilds",
+                web::get().to(handlers::discord_user_guilds),
             )
     })
     .bind(env::var("BIND").unwrap())?
